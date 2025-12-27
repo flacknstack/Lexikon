@@ -29,7 +29,7 @@ function lexicon_info(){
 		"website"	=> "hhttps://github.com/little-evil-genius/Lexikon",
 		"author"	=> "little.evil.genius",
 		"authorsite"	=> "https://storming-gates.de/member.php?action=profile&uid=1712",
-		"version"	=> "1.2.3",
+		"version"	=> "1.2.4",
 		"compatibility" => "18*"
 	);
 }
@@ -543,7 +543,7 @@ function lexicon_modcp_nav() {
 // MOD-CP - SEITE
 function lexicon_modcp() {
    
-    global $mybb, $templates, $lang, $theme, $header, $headerinclude, $footer, $db, $page, $modcp_nav, $text_options, $modcp_control_bit;
+    global $mybb, $templates, $lang, $theme, $header, $headerinclude, $footer, $db, $page, $modcp_nav, $text_options, $modcp_control_bit, $codebuttons;
 
     // DAMIT DIE PN SACHE FUNKTIONIERT
     require_once MYBB_ROOT."inc/datahandlers/pm.php";
@@ -859,6 +859,11 @@ function lexicon_modcp() {
 		} else {
 			$sort_option = "";
 		}
+
+		$codebuttons = build_mycode_inserter("entrytext");
+		if(function_exists('markitup_run_build')) {
+			markitup_run_build('entrytext');
+		};
     
 		eval("\$page = \"".$templates->get("lexicon_modcp_edit")."\";");
 		output_page($page);
@@ -1523,7 +1528,7 @@ function lexicon_templates($mode = '') {
 												</tr>
 												<tr>
 													<td class="trow1" colspan="2">
-														<textarea class="textarea" name="entrytext" id="entrytext" rows="6" cols="30" style="width: 95%"></textarea>
+														<textarea class="textarea" name="entrytext" id="entrytext" rows="6" cols="30" style="width: 95%"></textarea>{$codebuttons}
 													</td>
 												</tr>
 												
@@ -1765,7 +1770,7 @@ function lexicon_templates($mode = '') {
 												</tr>
 												<tr>
 													<td class="trow1" colspan="2">
-														<textarea class="textarea" name="entrytext" id="entrytext" rows="6" cols="30" style="width: 95%">{$entrytext}</textarea>
+														<textarea class="textarea" name="entrytext" id="entrytext" rows="6" cols="30" style="width: 95%">{$entrytext}</textarea>{$codebuttons}
 													</td>
 												</tr>
 				
@@ -2245,7 +2250,7 @@ function lexicon_templates($mode = '') {
 													</tr>
 													<tr>
 														<td class="trow1" colspan="2">
-															<textarea class="textarea" name="entrytext" id="entrytext" rows="6" cols="30" style="width: 95%">{$entrytext}</textarea>
+															<textarea class="textarea" name="entrytext" id="entrytext" rows="6" cols="30" style="width: 95%">{$entrytext}</textarea>{$codebuttons}
 														</td>
 													</tr>
 					
