@@ -2,7 +2,7 @@
 define('IN_MYBB', 1);
 require_once './global.php';
 
-global $db, $cache, $mybb, $lang, $templates, $theme, $header, $headerinclude, $footer, $text_options, $parser;
+global $db, $cache, $mybb, $lang, $templates, $theme, $header, $headerinclude, $footer, $text_options, $parser, $codebuttons;
 
 // PARSER - HTML und CO erlauben
 require_once MYBB_ROOT."inc/class_parser.php";;
@@ -397,6 +397,11 @@ if($mybb->get_input('action') == "add_entry") {
     } else {
         $sub_option = "";
     }
+
+    $codebuttons = build_mycode_inserter("entrytext");
+    if(function_exists('markitup_run_build')) {
+        markitup_run_build('entrytext');
+    };
     
     eval("\$page = \"".$templates->get("lexicon_add_entry")."\";");
     output_page($page);
@@ -647,6 +652,11 @@ if($mybb->get_input('edit') == "entry") {
     } else {
         $sort_option = "";
     }
+
+    $codebuttons = build_mycode_inserter("entrytext");
+    if(function_exists('markitup_run_build')) {
+        markitup_run_build('entrytext');
+    };
     
     eval("\$page = \"".$templates->get("lexicon_edit_entry")."\";");
     output_page($page);
