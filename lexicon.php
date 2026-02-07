@@ -433,7 +433,7 @@ if($mybb->get_input('action') == "do_entry") {
  
     $db->insert_query("lexicon_entries", $new_entry);
  
-    redirect("lexicon.php", $lang->lexicon_redirect_add_entry);  
+    redirect("lexicon.php?page=".$db->escape_string($mybb->get_input('link')), $lang->lexicon_redirect_add_entry);  
 } 
 
 // DIE SEITEN
@@ -681,7 +681,7 @@ if($mybb->get_input('edit') == "do_entry") {
 
     $db->update_query("lexicon_entries", $edit_entry, "eid = '".$eid."'");
  
-    redirect("lexicon.php", $lang->lexicon_redirect_edit_entry);  
+    redirect("lexicon.php?page=".$db->escape_string($mybb->get_input('link')), $lang->lexicon_redirect_edit_entry);  
 }
 
 // EXTERNENLINK BEARBEITEN - SEITE
