@@ -24,7 +24,7 @@ if(class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
 // The information displayed in the plugin manager
 function lexicon_info(){
 	return array(
-		"name"		=> "Board-internal glossary",
+		"name"		=> "Lexicon",
 		"description"	=> "Add a custom lexicon to the forum. This can be accessed on the page /lexicon.php.",
 		"website"	=> "https://github.com/little-evil-genius/Lexikon",
 		"author"	=> "little.evil.genius",
@@ -559,7 +559,7 @@ function lexicon_modcp() {
 	$lang->load('lexicon');
 
 	// PARSER - HTML und CO erlauben
-	require_once MYBB_ROOT."inc/class_parser.php";;
+	require_once MYBB_ROOT."inc/class_parser.php";
 	$parser = new postParser;
 	$text_options = array(
 		"allow_html" => 1,
@@ -1942,8 +1942,8 @@ function lexicon_templates($mode = '') {
 		<div class="navigation-search">
 			<form action="lexicon.php" method="get">
 				<input type="hidden" name="search" value="results">
-				<input type="text" class="textbox" name="keyword" id="keyword" placeholder="Suchbegriff eingeben" value="">
-				<button type="submit">Suchen</button>
+				<input type="text" class="textbox" name="keyword" id="keyword" placeholder="Enter search term" value="">
+				<button type="submit">Submit</button>
 			</form>
 		</div>
 		{$menu_contents} 
