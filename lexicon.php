@@ -4,20 +4,20 @@ require_once './global.php';
 
 global $db, $cache, $mybb, $lang, $templates, $theme, $header, $headerinclude, $footer, $text_options, $parser, $codebuttons;
 
-// PARSER - HTML und CO erlauben
+// PARSER - Allow HTML and Co
 require_once MYBB_ROOT."inc/class_parser.php";;
 $parser = new postParser;
 $text_options = array(
     "allow_html" => 1,
     "allow_mycode" => 1,
-    "allow_smilies" => 1,
+    "allow_smilies" => 1,SPRACHDATEI
     "allow_imgcode" => 1,
     "filter_badwords" => 0,
     "nl2br" => 1,
     "allow_videocode" => 0
 );
 
-// SPRACHDATEI
+// LANGUAGE FILE
 $lang->load('lexicon');
 
 // user is visiting the site and plugin isn't installed
@@ -25,7 +25,7 @@ if (!$db->table_exists("lexicon_entries")) {
     redirect('index.php', $lang->lexicon_redirect_uninstall);
 }
 
-// EINSTELLUNGEN
+// SETTINGS
 $lexicon_groups_cat_setting = $mybb->settings['lexicon_groups_cat'];
 $lexicon_groups_entry_setting = $mybb->settings['lexicon_groups_entry'];
 $lexicon_sort_cat_setting = $mybb->settings['lexicon_sort_cat'];
@@ -39,14 +39,14 @@ $user_accepted_setting = $mybb->settings['lexicon_user_accepted'];
 // ACCOUNTSWITCHER
 $user_id = $mybb->user['uid'];
 if ($user_id != 0 AND !function_exists('accountswitcher_is_installed')) {
-    // Haupt-UID
+    // Main-UID
     $mainID = $db->fetch_field($db->simple_select("users", "as_uid", "uid = '".$user_id."'"), "as_uid");
     if(empty($mainID)) {
         $mainID = $user_id;
     }
-    // Zusatzfunktion - CharakterUID-string
+    // Additional function - CharacterUID string
     $charas = lexicon_get_allchars($user_id);
-    //hier den string bauen ich hänge hinten und vorne noch ein komma dran um so was wie 1 udn 100 abzufangen
+    //Here's how to build the string; I'm adding a comma at the beginning and end to catch things like 1 and 100.
     $charastring = ",".implode(",", array_keys($charas)).",";
 } else {
     $charastring = "";
@@ -54,14 +54,14 @@ if ($user_id != 0 AND !function_exists('accountswitcher_is_installed')) {
  
 add_breadcrumb($lang->lexicon_nav_main, "lexicon.php");
 
-// Manuelle Sortierung - Kategorien
+// Manual sorting - categories
 if ($lexicon_sort_cat_setting == 1) {
     $sort_cat = "sort ASC";
 } else  {
     $sort_cat = "categoryname ASC";
 }
 
-// Manuelle Sortierung - Einträge
+// Manual sorting - entries
 if ($lexicon_sort_entry_setting == 1) {
     $sort_entry = "sort ASC, linktitle ASC";
 } else  {
@@ -74,7 +74,7 @@ if ($lexicon_sub_setting == 1) {
     $sub_options = "";
 }
 
-//Generieren wir uns mal das Menü, welches sich Automatisch erweitert, wenn neue Einträge in der Datenbank erscheinen.
+//Let's generate a menu that automatically expands when new entries appear in the database.
 $query_menu = $db->query("SELECT * FROM ".TABLE_PREFIX."lexicon_categories
 ORDER BY ".$sort_cat."
 ");
@@ -82,15 +82,15 @@ ORDER BY ".$sort_cat."
 $menu_cat = "";
 while($cat = $db->fetch_array($query_menu)){
 
-    // Leer laufen lassen
+    // Run dry
     $category = "";
     $cid = "";
 
-    // Mit Infos füllen
+    // Fill with information
     $category = $cat['categoryname'];
     $cid = $cat['cid'];
 
-    // Einträge der Kategorie auslesen
+    // Read entries from the category
     $entries_query = $db->query("SELECT * FROM ".TABLE_PREFIX."lexicon_entries
     WHERE cid = '".$cid."'
     AND accepted = '1'
@@ -102,13 +102,13 @@ while($cat = $db->fetch_array($query_menu)){
     $option_buttons_cat = "";
     while($entry = $db->fetch_array($entries_query)){
 
-        // Leer laufen lassen
+        // Run dry
         $link = "";
         $linktitle = "";
         $eid = "";
         $externallink = "";
 
-        // Mit Infos füllen
+        // Fill with information
         $link = $entry['link'];
         $linktitle = $entry['linktitle'];
         $eid = $entry['eid'];
@@ -124,14 +124,14 @@ while($cat = $db->fetch_array($query_menu)){
             $subentries = "";
             while($subentry = $db->fetch_array($subentries_query)){
 
-                // Leer laufen lassen
+                // Run dry
                 $eid = "";
                 $sublink = "";   
                 $sublinktitle = "";
                 $subexternallink = "";
                 $option_menu_subentries = "";
     
-                // Mit Infos füllen
+                // Fill with information
                 $eid = $subentry['eid'];   
                 $sublink = $subentry['link'];       
                 $sublinktitle = $subentry['linktitle'];
@@ -168,7 +168,7 @@ while($cat = $db->fetch_array($query_menu)){
         eval("\$entries .= \"".$templates->get("lexicon_menu_entries")."\";");
     }
 
-    // Team kann die Option Buttons sehen
+    // The team can see the option buttons.
     if ($mybb->usergroup['canmodcp'] == '1') {
         eval("\$option_buttons_cat = \"".$templates->get("lexicon_menu_cat_option")."\";");
     } else {
@@ -178,21 +178,21 @@ while($cat = $db->fetch_array($query_menu)){
     eval("\$menu_cat .= \"".$templates->get("lexicon_menu_cat")."\";");
 }
 
-// Inhaltsverzeichnis anzeigen im Menü
+// Show table of contents in the menu
 if ($lexicon_contents_setting == 1) {
     $menu_contents = "<div class=\"navigation-item\"><a href=\"lexicon.php?action=contents\">{$lang->lexicon_contents}</a></div> ";
 } else  {
     $menu_contents = "";
 }
 
-// Erlaubte User/Gruppen Button für das Hinzufügen Kategorien anzeigen
+// Allowed users/groups Button for adding categories Show categories
 if(is_member($lexicon_groups_cat_setting)) { 
     eval("\$add_cat = \"".$templates->get("lexicon_menu_add_cat")."\";");
 } else {
     $add_cat = "";
 }
 
-// Erlaubte User/Gruppen Button für das Hinzufügen Einträge anzeigen => nur anzeigen, wenn es mindestens eine Kategorie gibt
+// Allowed users/groups Button for adding entries Show entries => only show if there is at least one category
 $count_cat = $db->num_rows($db->query("SELECT cid FROM ".TABLE_PREFIX."lexicon_categories"));
 if(is_member($lexicon_groups_entry_setting) AND $count_cat > 0) { 
     eval("\$add_entry = \"".$templates->get("lexicon_menu_add_entry")."\";");
@@ -200,10 +200,10 @@ if(is_member($lexicon_groups_entry_setting) AND $count_cat > 0) {
     $add_entry = "";
 }
 
-// lade das Template für die Navigation
+// Load the navigation template
 eval("\$menu = \"".$templates->get("lexicon_menu")."\";");
  
-// DIE HAUPTSEITE VOM LEXIKON - kein Aktion
+// THE MAIN PAGE OF THE ENCYCLOPEDIA - no action
 if(!$mybb->get_input('action') AND !$mybb->get_input('search') AND !$mybb->get_input('page') AND !$mybb->get_input('edit') AND !$mybb->get_input('delete_entry') AND !$mybb->get_input('delete_category') AND !$mybb->get_input('delete_externallink')) {
     
     eval("\$page = \"".$templates->get("lexicon_mainpage")."\";");
@@ -211,7 +211,7 @@ if(!$mybb->get_input('action') AND !$mybb->get_input('search') AND !$mybb->get_i
     die();
 }
 
-// INHALTSVERZEICHNIS
+// TABLE OF CONTENTS
 if($mybb->get_input('action') == "contents") {
 
     add_breadcrumb($lang->lexicon_contents);
@@ -227,7 +227,7 @@ if($mybb->get_input('action') == "contents") {
     $contents_bit = "";
     foreach ($alphabet as $buchstabe){  
 
-        // Einträge nach dem Buchstaben auslesen
+        // Read entries alphabetically
         $entries_query = $db->query("SELECT * FROM ".TABLE_PREFIX."lexicon_entries
         WHERE linktitle LIKE '".$buchstabe."%'
         AND accepted = 1
@@ -237,7 +237,7 @@ if($mybb->get_input('action') == "contents") {
         $entries = "";    
         while($entry = $db->fetch_array($entries_query)){
 
-            // Leer laufen lassen
+            // Run dry
             $link = "";    
             $linktitle = "";
             $externallink = "";
@@ -245,7 +245,7 @@ if($mybb->get_input('action') == "contents") {
             $categoryname = "";
             $fulllink = "";
 
-            // Mit Infos füllen
+            // Fill with information
             $link = $entry['link'];    
             $linktitle = $entry['linktitle'];
             $externallink = $entry['externallink'];
@@ -270,7 +270,7 @@ if($mybb->get_input('action') == "contents") {
     die();
 }
 
-// SUCHERGEBNIS
+// SEARCH RESULTS
 if($mybb->get_input('search') == "results") {
 
     $keyword = $db->escape_string($mybb->get_input('keyword'));
@@ -316,7 +316,7 @@ if($mybb->get_input('search') == "results") {
     die();
 }
 
-// KATEGORIE HINZUFÜGEN - SEITE
+// ADD CATEGORY - PAGE
 if($mybb->get_input('action') == "add_category") {
 
     add_breadcrumb($lang->lexicon_nav_add_category);
@@ -339,7 +339,7 @@ if($mybb->get_input('action') == "add_category") {
     die();
 }
 
-// KATEGORIE HINZUFÜGEN - SPEICHERN
+// ADD CATEGORY - SAVE
 if($mybb->get_input('action') == "do_category") {
  
     $new_cat = [
@@ -352,12 +352,12 @@ if($mybb->get_input('action') == "do_category") {
     redirect("lexicon.php", $lang->lexicon_redirect_add_cat);  
 } 
 
-// EINTRAG HINZUFÜGEN - SEITE
+// ADD ENTRY - PAGE
 if($mybb->get_input('action') == "add_entry") {
 
     add_breadcrumb($lang->lexicon_nav_add_entry);
 
-    // Nicht erlaubte User/Gruppen wieder auf die Hauptseite weiterleiten
+    // Redirect unauthorized users/groups back to the main page
     if(!is_member($lexicon_groups_entry_setting)) { 
         redirect('lexicon.php', $lang->lexicon_redirect_add_error_entry);
         return;
@@ -370,7 +370,7 @@ if($mybb->get_input('action') == "add_entry") {
         $sort_option = "";
     }
 
-    // KATEGORIEN DROPBOX GENERIEREN
+    // GENERATE DROPBOX CATEGORIES
     $categories_query = $db->query("SELECT * FROM ".TABLE_PREFIX."lexicon_categories ORDER by categoryname ASC");
           
     $cat_select = ""; 
@@ -379,7 +379,7 @@ if($mybb->get_input('action') == "add_entry") {
         $cat_select .= "<option value=\"{$category['cid']}\">{$category['categoryname']}</option>";
     }
 
-    // UNTEREINTRÄGE - Einträge sammeln
+    // SUB-ENTRIES - Collect entries
     if($lexicon_sub_setting == 1) {
         
         $entries_query = $db->query("SELECT * FROM ".TABLE_PREFIX."lexicon_entries
@@ -408,10 +408,10 @@ if($mybb->get_input('action') == "add_entry") {
     die();
 }
 
-// EINTRAG HINZUFÜGEN - SPEICHERN
+// ADD ENTRY - SAVE
 if($mybb->get_input('action') == "do_entry") {
 
-    // Team Einträge werden gleich angenommen      
+    // Team entries will be accepted immediately.      
     if($mybb->usergroup['canmodcp'] == '1' || $user_accepted_setting == 0){
         $accepted = 1;
     } else {
@@ -436,11 +436,11 @@ if($mybb->get_input('action') == "do_entry") {
     redirect("lexicon.php?page=".$db->escape_string($mybb->get_input('link')), $lang->lexicon_redirect_add_entry);  
 } 
 
-// DIE SEITEN
+// THE PAGES
 $lexicon_entry = $mybb->get_input('page');
 if ($lexicon_entry) {
 
-    // Eintrag nach Link input ausgeben
+    // Output entry after link input
     $entries_query = $db->query("SELECT * FROM ".TABLE_PREFIX."lexicon_entries
     WHERE link = '".$lexicon_entry."'
     ");
@@ -467,23 +467,23 @@ if ($lexicon_entry) {
         $title = $entry['title'];
         $entrytext = $parser->parse_message($entry['entrytext'], $text_options);
 
-        // Team und der entsprechende User evtl kann die Option Buttons sehen
+        // The team and the relevant user may be able to see the option buttons.
         $pos = strpos($charastring, ",".$entry['uid'].",");
         if ($mybb->usergroup['canmodcp'] == '1' || $pos !== false) {
-            // Team kann immer 
+            // Team can always
             if ($mybb->usergroup['canmodcp'] == '1') {
                 $edit_button = "<a href=\"lexicon.php?edit=entry&eid=".$eid."\">".$lang->lexicon_button_edit."</a>";
                 $delete_button = "<a href=\"lexicon.php?delete_entry=".$eid."\" onClick=\"return confirm('".$lang->lexicon_entry_delet_notice."');\">".$lang->lexicon_button_delete."</a>";
                 eval("\$option_buttons_entry = \"".$templates->get("lexicon_entry_option")."\";");
             } else {
                 if ($user_edit_setting == 1 OR $user_delete_setting == 1) {
-                    // Bearbeiten
+                    // Edit
                     if ($user_edit_setting == 1) {
                         $edit_button = "<a href=\"lexicon.php?edit=entry&eid=".$eid."\">".$lang->lexicon_button_edit."</a>";
                     } else {
                         $edit_button = "";
                     }
-                    // Löschen
+                    // Delete
                     if ($user_delete_setting == 1) {
                         $delete_button = "<a href=\"lexicon.php?delete_entry=".$eid."\" onClick=\"return confirm('".$lang->lexicon_entry_delet_notice."');\">".$lang->lexicon_button_delete."</a>";
                     } else {
@@ -505,12 +505,12 @@ if ($lexicon_entry) {
 
 }
 
-// KATEGORIE BEARBEITEN - SEITE
+// EDIT CATEGORY - PAGE
 if($mybb->get_input('edit') == "category") {
 
     add_breadcrumb($lang->lexicon_nav_edit_category);
 
-    // Nicht erlaubte User/Gruppen wieder auf die Hauptseite weiterleiten
+    // Redirect unauthorized users/groups back to the main page
     if($mybb->usergroup['canmodcp'] != '1') { 
         redirect('lexicon.php', $lang->lexicon_redirect_edit_error_cat);
         return;
@@ -518,7 +518,7 @@ if($mybb->get_input('edit') == "category") {
 
     $cid = $mybb->get_input('cid');
 
-    // Kategorie auslesen
+    // Read category
     $category_query = $db->query("SELECT * FROM ".TABLE_PREFIX."lexicon_categories
     WHERE cid = '".$cid."'
     ");
@@ -546,7 +546,7 @@ if($mybb->get_input('edit') == "category") {
     die();
 }
 
-// KATEGORIE BEARBEITEN - SPEICHERN
+// EDIT CATEGORY - SAVE
 if($mybb->get_input('edit') == "do_category") {
 
     $cid = $mybb->get_input('cid');
@@ -561,14 +561,14 @@ if($mybb->get_input('edit') == "do_category") {
     redirect("lexicon.php", $lang->lexicon_redirect_edit_cat);  
 } 
 
-// EINTRAG BEARBEITEN - SEITE
+// EDIT ENTRY - PAGE
 if($mybb->get_input('edit') == "entry") {
 
     $eid = $mybb->get_input('eid');
 
     add_breadcrumb($lang->lexicon_nav_edit_entry);
 
-    // Nur Teamies und der entsprechende User können die Seite sehen   
+    // Only team members and the relevant user can see the page. 
     $sendedby = $db->fetch_field($db->simple_select("lexicon_entries", "uid", "eid = '".$eid."'"), "uid");
     $check = strpos($charastring, ",".$sendedby.",");
 
@@ -577,7 +577,7 @@ if($mybb->get_input('edit') == "entry") {
         return;
     }
 
-    // Eintrag auslesen
+    // Read entry
     $entry_query = $db->query("SELECT * FROM ".TABLE_PREFIX."lexicon_entries
     WHERE eid = '".$eid."'
     ");
@@ -602,13 +602,13 @@ if($mybb->get_input('edit') == "entry") {
         $sort = $edit['sort'];
         $externallink = $edit['externallink'];
  
-        // KATEGORIEN DROPBOX GENERIEREN
+        // GENERATE DROPBOX CATEGORIES
         $categories_query = $db->query("SELECT * FROM ".TABLE_PREFIX."lexicon_categories ORDER by categoryname ASC");
 
         $cat_select = "";
         while($category = $db->fetch_array($categories_query)) {
     
-            // die bisherige Kategorie als ausgewählt anzeigen lassen
+            // Show the current category as selected
             if($category['cid'] == $cid) {
                 $checked_cat = "selected";
             } else {
@@ -629,7 +629,7 @@ if($mybb->get_input('edit') == "entry") {
             $entries_select = "";    
             while($entry = $db->fetch_array($entries_query)) {
 
-                // die bisherige Kategorie als ausgewählt anzeigen lassen
+                // Show the current category as selected
                 if($entry['eid'] == $edit['parentlist']) {
                     $checked_sub = "selected";
                 } else {
@@ -663,7 +663,7 @@ if($mybb->get_input('edit') == "entry") {
     die();
 }
 
-// EINTRAG BEARBEITEN - SPEICHERN
+// EDIT ENTRY - SAVE
 if($mybb->get_input('edit') == "do_entry") {
 
     $eid = $mybb->get_input('eid');
@@ -684,7 +684,7 @@ if($mybb->get_input('edit') == "do_entry") {
     redirect("lexicon.php?page=".$db->escape_string($mybb->get_input('link')), $lang->lexicon_redirect_edit_entry);  
 }
 
-// EXTERNENLINK BEARBEITEN - SEITE
+// EDIT EXTERNAL LINK - PAGE
 if($mybb->get_input('edit') == "externallink") {
 
     $eid = $mybb->get_input('eid');
@@ -696,7 +696,7 @@ if($mybb->get_input('edit') == "externallink") {
         return;
     }
 
-    // Eintrag auslesen
+    // Read entry
     $externallink_query = $db->query("SELECT * FROM ".TABLE_PREFIX."lexicon_entries
     WHERE eid = '".$eid."'
     ");
@@ -715,13 +715,13 @@ if($mybb->get_input('edit') == "externallink") {
         $externallink = $edit['externallink'];
         $sort = $edit['sort'];
  
-        // KATEGORIEN DROPBOX GENERIEREN
+        // GENERATE DROPBOX CATEGORIES
         $categories_query = $db->query("SELECT * FROM ".TABLE_PREFIX."lexicon_categories ORDER by categoryname ASC");
 
         $cat_select = "";
         while($category = $db->fetch_array($categories_query)) {
     
-            // die bisherige Kategorie als ausgewählt anzeigen lassen
+            // Show the current category as selected
             if($category['cid'] == $cid) {
                 $checked_cat = "selected";
             } else {
@@ -742,7 +742,7 @@ if($mybb->get_input('edit') == "externallink") {
             $entries_select = "";    
             while($entry = $db->fetch_array($entries_query)) {
 
-                // die bisherige Kategorie als ausgewählt anzeigen lassen
+                // Show the current category as selected
                 if($entry['eid'] == $edit['parentlist']) {
                     $checked_sub = "selected";
                 } else {
@@ -771,7 +771,7 @@ if($mybb->get_input('edit') == "externallink") {
     die();
 }
 
-// EXTERNENLINK BEARBEITEN - SPEICHERN
+// EDIT EXTERNAL LINK - SAVE
 if($mybb->get_input('edit') == "do_externallink") {
 
     $eid = $mybb->get_input('eid');
@@ -789,47 +789,47 @@ if($mybb->get_input('edit') == "do_externallink") {
     redirect("lexicon.php", $lang->lexicon_redirect_edit_externallink);  
 }
 
-// KATEGORIE LÖSCHEN
+// DELETE CATEGORY
 $delete_cat = $mybb->get_input('delete_category');
 if($delete_cat) {
 
-    // in Kategorie löschen
+    // delete in category
     $db->delete_query("lexicon_categories", "cid = '".$delete_cat."'");
-    // Einträge der Kategorie löschen
+    // Delete entries in the category
     $db->delete_query("lexicon_entries", "cid = '".$delete_cat."'");
 
     redirect("lexicon.php", $lang->lexicon_redirect_delete_cat);
 }
 
-// EINTRAG LÖSCHEN
+// DELETE ENTRY
 $delete_entry = $mybb->get_input('delete_entry');
 if($delete_entry) {
 
-    // in Eintrag löschen
+    // delete entry
     $db->delete_query("lexicon_entries", "eid = '".$delete_entry."'");
-    // in Untereinträge von diesem Eintrag löschen
+    // Delete sub-entries of this entry
     $db->delete_query("lexicon_entries", "parentlist = '".$delete_entry."'");
 
     redirect("lexicon.php", $lang->lexicon_redirect_delete_entry);
 }
 
-// EXTERNENLINK LÖSCHEN
+// DELETE EXTERNAL LINK
 $delete_externallink = $mybb->get_input('delete_externallink');
 if($delete_externallink) {
 
-    // in Eintrag löschen
+    // delete entry
     $db->delete_query("lexicon_entries", "eid = '".$delete_externallink."'");
-    // in Untereinträge von diesem Eintrag löschen
+    // Delete sub-entries of this entry
     $db->delete_query("lexicon_entries", "parentlist = '".$delete_externallink."'");
 
     redirect("lexicon.php", $lang->lexicon_redirect_delete_externallink);
 }
 
-// ACCOUNTSWITCHER HILFSFUNKTION
+// ACCOUNTSWITCHER AUXILIARY FUNCTION
 function lexicon_get_allchars($user_id) {
 	global $db, $cache, $mybb, $lang, $templates, $theme, $header, $headerinclude, $footer;
 
-	//für den fall nicht mit hauptaccount online
+	//in case you are not online with your main account
 	if (isset(get_user($user_id)['as_uid'])) {
         $as_uid = intval(get_user($user_id)['as_uid']);
     } else {
@@ -838,10 +838,10 @@ function lexicon_get_allchars($user_id) {
 
 	$charas = array();
 	if ($as_uid == 0) {
-	  // as_uid = 0 wenn hauptaccount oder keiner angehangen
+	  // as_uid = 0 if main account or none attached
 	  $get_all_users = $db->query("SELECT uid,username FROM ".TABLE_PREFIX."users WHERE (as_uid = ".$user_id.") OR (uid = ".$user_id.") ORDER BY username");
 	} else if ($as_uid != 0) {
-	  //id des users holen wo alle an gehangen sind 
+	  //Get the ID of the user where everyone is attached. 
 	  $get_all_users = $db->query("SELECT uid,username FROM ".TABLE_PREFIX."users WHERE (as_uid = ".$as_uid.") OR (uid = ".$user_id.") OR (uid = ".$as_uid.") ORDER BY username");
 	}
 	while ($users = $db->fetch_array($get_all_users)) {
