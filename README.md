@@ -1,4 +1,7 @@
+This is an English translation of a German plugin, Lexikon.
+
 # Internal Forum Lexicon
+Access your Lexicon with URL sitename.com/lexicon.php
 
 This plugin adds a built-in lexicon to the forum. The lexicon provides a convenient way to compile a comprehensive and user-friendly reference guide for forum-specific information in one central location. Specific user groups, defined in the Admin Control Panel (ACP), can create entries for the lexicon and categorize them. Custom categories can also be created by selected groups. Submitted entries are immediately approved by the team. For users without access to the Mod Control Panel, the ACP allows you to choose whether their submissions should be reviewed beforehand. The user will then be notified of acceptance or rejection via private message (PM) or MyAlert. If the MyAlerts plugin is not installed, private messages will be sent accordingly. With MyAlerts installed, the team can configure in the settings whether to send an alert or a PM to the user. Similarly, you can configure whether users can edit and/or delete their own submitted entries.
 
