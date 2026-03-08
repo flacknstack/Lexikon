@@ -1,5 +1,5 @@
 <?php
-// Direktzugriff auf die Datei aus Sicherheitsgründen sperren
+// Block direct access to the file for security reasons
 if(!defined("IN_MYBB")){
 	die("Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.");
 }
@@ -21,12 +21,12 @@ if(class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
 	$plugins->add_hook("global_start", "lexicon_myalert_alerts");
 }
  
-// Die Informationen, die im Pluginmanager angezeigt werden
+// The information displayed in the plugin manager
 function lexicon_info(){
 	return array(
-		"name"		=> "Boardinternes Lexikon",
-		"description"	=> "Fügt dem Forum ein eigenes Lexikon hinzu. Dies kann auf der Seite /lexicon.php aufgerufen werden.",
-		"website"	=> "hhttps://github.com/little-evil-genius/Lexikon",
+		"name"		=> "Board-internal glossary",
+		"description"	=> "Add a custom lexicon to the forum. This can be accessed on the page /lexicon.php.",
+		"website"	=> "https://github.com/little-evil-genius/Lexikon",
 		"author"	=> "little.evil.genius",
 		"authorsite"	=> "https://storming-gates.de/member.php?action=profile&uid=1712",
 		"version"	=> "1.2.4",
@@ -34,26 +34,26 @@ function lexicon_info(){
 	);
 }
  
-// Diese Funktion wird aufgerufen, wenn das Plugin installiert wird (optional).
+// This function is called when the plugin is installed. (optional).
 function lexicon_install(){
     
     global $db, $cache, $mybb;
 
-    // RPG Stuff Modul muss vorhanden sein
+    // RPG Stuff module required
     if (!file_exists(MYBB_ADMIN_DIR."/modules/rpgstuff/module_meta.php")) {
-		flash_message("Das ACP Modul <a href=\"https://github.com/little-evil-genius/rpgstuff_modul\" target=\"_blank\">\"RPG Stuff\"</a> muss vorhanden sein!", 'error');
+		flash_message("The ACP module <a href=\"https://github.com/little-evil-genius/rpgstuff_modul\" target=\"_blank\">\"RPG Stuff\"</a> muss vorhanden sein!", 'error');
 		admin_redirect('index.php?module=config-plugins');
 	}
 
-	// DATENBANKTABELLEN UND FELDER
+	// DATABASE TABLES AND FIELDS
     lexicon_database();
 
-	// EINSTELLUNGEN HINZUFÜGEN
+	// ADD SETTINGS
 	$maxdisporder = $db->fetch_field($db->query("SELECT MAX(disporder) FROM ".TABLE_PREFIX."settinggroups"), "MAX(disporder)");
 	$setting_group = array(
 		'name'          => 'lexicon',
-		'title'         => 'Boardinternes Lexikon',
-		'description'   => 'Einstellungen für das Lexikon',
+		'title'         => 'Board-internal glossary',
+		'description'   => 'Dictionary settings',
 		'disporder'     => $maxdisporder+1,
 		'isdefault'     => 0
 	);	
@@ -62,9 +62,9 @@ function lexicon_install(){
     lexicon_settings();
 	rebuild_settings();
 
-    // STYLESHEET HINZUFÜGEN
+    // ADD STYLE SHEET
 	require_once MYBB_ADMIN_DIR."inc/functions_themes.php";
-    // Funktion
+    // Function
     $css = lexicon_stylesheet();
     $sid = $db->insert_query("themestylesheets", $css);
 	$db->update_query("themestylesheets", array("cachefile" => "lexicon.css"), "sid = '".$sid."'", 1);
@@ -74,8 +74,8 @@ function lexicon_install(){
 		update_theme_stylesheet_list($theme['tid']);
 	}  
 
-	// TEMPLATES ERSTELLEN
-	// Template Gruppe für jedes Design erstellen
+	// CREATE TEMPLATES 
+	// Create a template group for each design
     $templategroup = array(
         "prefix" => "lexicon",
         "title" => $db->escape_string("Lexikon"),
@@ -85,7 +85,7 @@ function lexicon_install(){
 
 }
  
-// Funktion zur Überprüfung des Installationsstatus; liefert true zurürck, wenn Plugin installiert, sonst false (optional).
+// Function to check the installation status; returns true if the plugin is installed, otherwise false (optional).
 function lexicon_is_installed(){
 	global $db, $mybb;
 
@@ -95,11 +95,11 @@ function lexicon_is_installed(){
     return false;
 } 
  
-// Diese Funktion wird aufgerufen, wenn das Plugin deinstalliert wird (optional).
+//This function is called when the plugin is uninstalled. (optional).
 function lexicon_uninstall(){
 	global $db, $cache;
 
-    //DATENBANKEN LÖSCHEN
+    //DELETE DATABASES
     if($db->table_exists("lexicon_categories"))
     {
         $db->drop_table("lexicon_categories");
@@ -109,21 +109,21 @@ function lexicon_uninstall(){
         $db->drop_table("lexicon_entries");
     }
     
-    // EINSTELLUNGEN LÖSCHEN
+    // DELETE SETTINGS
     $db->delete_query('settings', "name LIKE 'lexicon%'");
     $db->delete_query('settinggroups', "name = 'lexicon'");
 
     rebuild_settings();
 
-    // TEMPLATGRUPPE LÖSCHEN
+    // DELETE TEMPLATE GROUP
     $db->delete_query("templategroups", "prefix = 'lexicon'");
 
-    // TEMPLATES LÖSCHEN
+    // DELETE TEMPLATES
     $db->delete_query("templates", "title LIKE '%lexicon%'");
 
 	require_once MYBB_ADMIN_DIR."inc/functions_themes.php";
 
-    // STYLESHEET ENTFERNEN
+    // REMOVE STYLESHEET
 	$db->delete_query("themestylesheets", "name = 'lexicon.css'");
 	$query = $db->simple_select("themes", "tid");
 	while($theme = $db->fetch_array($query)) {
@@ -131,14 +131,14 @@ function lexicon_uninstall(){
 	}
 }
  
-// Diese Funktion wird aufgerufen, wenn das Plugin aktiviert wird.
+// This function is called when the plugin is activated.
 function lexicon_activate(){
 
 	global $db, $cache;
 
     require MYBB_ROOT."/inc/adminfunctions_templates.php";
 
-	// VARIABLEN EINFÜGEN
+	// INSERT VARIABLES
 	find_replace_templatesets('header', '#'.preg_quote('{$bbclosedwarning}').'#', '{$lexikon_newentry} {$bbclosedwarning}');
 	find_replace_templatesets("header", "#".preg_quote('{$menu_memberlist}')."#i", '{$menu_memberlist}{$menu_lexicon}');
 	find_replace_templatesets('modcp_nav_users', '#'.preg_quote('{$nav_ipsearch}').'#', '{$nav_ipsearch} {$nav_lexicon}');
@@ -151,7 +151,7 @@ function lexicon_activate(){
 			$alertTypeManager = MybbStuff_MyAlerts_AlertTypeManager::createInstance($db, $cache);
 		}
 
-        // Alert fürs Annehmen
+        // Alert for acceptance
 		$alertType = new MybbStuff_MyAlerts_Entity_AlertType();
 		$alertType->setCode('lexicon_accept'); // The codename for your alert type. Can be any unique string.
 		$alertType->setEnabled(true);
@@ -159,7 +159,7 @@ function lexicon_activate(){
 
 		$alertTypeManager->add($alertType);
 
-        // Alert fürs Ablehnen
+        // Alert for rejection
         $alertType = new MybbStuff_MyAlerts_Entity_AlertType();
 		$alertType->setCode('lexicon_delete'); // The codename for your alert type. Can be any unique string.
 		$alertType->setEnabled(true);
@@ -169,14 +169,14 @@ function lexicon_activate(){
     }
 }
  
-// Diese Funktion wird aufgerufen, wenn das Plugin deaktiviert wird.
+// This function is called when the plugin is deactivated.
 function lexicon_deactivate(){
 
 	global $db, $cache;
 
     require MYBB_ROOT."/inc/adminfunctions_templates.php";
 
-    // VARIABLEN ENTFERNEN
+    // REMOVE VARIABLES
 	find_replace_templatesets("header", "#".preg_quote('{$lexikon_newentry}')."#i", '', 0);
 	find_replace_templatesets("header", "#".preg_quote('{$menu_lexicon}')."#i", '', 0);
     find_replace_templatesets("modcp_nav_users", "#".preg_quote('{$nav_lexicon}')."#i", '', 0);
@@ -227,14 +227,14 @@ function lexicon_settings_peek(&$peekers){
 	}
 }
 
-// ADMIN BEREICH - KONFIGURATION //
+// ADMIN AREA - CONFIGURATOR //
 
-// action handler fürs acp konfigurieren
+// Configure action handler for ACP
 function lexicon_admin_rpgstuff_action_handler(&$actions) {
 	$actions['lexicon_transfer'] = array('active' => 'lexicon_transfer', 'file' => 'lexicon_transfer');
 }
 
-// im Menü einfügen [Übertragen]
+// Insert in menu [Transfer]
 function lexicon_admin_rpgstuff_menu_updates(&$sub_menu) {
 
 	global $mybb, $lang, $db;
@@ -242,13 +242,13 @@ function lexicon_admin_rpgstuff_menu_updates(&$sub_menu) {
     if ($db->table_exists("wiki_categories") AND $db->table_exists("wiki_entries")) {
         $sub_menu[] = [
             "id" => "lexicon_transfer",
-            "title" => "Wiki-Daten übertragen",
+            "title" => "Transferring Wiki data",
             "link" => "index.php?module=rpgstuff-lexicon_transfer"
         ];
     }
 }
 
-// die Seite zum Übertragen
+// the page for transferring
 function lexicon_admin_manage() {
 
 	global $mybb, $db, $lang, $page, $run_module, $action_file, $cache;
@@ -269,25 +269,25 @@ function lexicon_admin_manage() {
             if ($mybb->request_method == 'post') {
 
 				if (lexicon_columnExists("wiki_categories", "sort")) {
-					// Code, falls die Spalte 'sort' existiert
+					// Code if the column 'sort' exists
 					$db->query("INSERT INTO ".TABLE_PREFIX."lexicon_categories (cid, categoryname, sort) SELECT cid, category, sort FROM ".TABLE_PREFIX."wiki_categories");
 				} else {
-					// Code, falls die Spalte 'sort' nicht existiert
+					// Code if the column 'sort' does not exist
 					$db->query("INSERT INTO ".TABLE_PREFIX."lexicon_categories (cid, categoryname, sort) SELECT cid, category, 0 AS sort FROM ".TABLE_PREFIX."wiki_categories");
 				}
 
 				if (lexicon_columnExists("wiki_entries", "sort")) {
-					// Code, falls die Spalte 'sort' existiert
+					// Code if the column 'sort' exists
 					$db->query("INSERT INTO ".TABLE_PREFIX."lexicon_entries (eid, cid, linktitle, link, externallink, title, entrytext, sort, parentlist, uid, accepted) SELECT wid, cid, linktitle, link, '', title, wikitext, sort, '0', uid, accepted FROM ".TABLE_PREFIX."wiki_entries");
 				} else {
-					// Code, falls die Spalte 'sort' nicht existiert
+					// Code if the column 'sort' does not exist
 					$db->query("INSERT INTO ".TABLE_PREFIX."lexicon_entries (eid, cid, linktitle, link, externallink, title, entrytext, sort, parentlist, uid, accepted) SELECT wid, cid, linktitle, link, '', title, wikitext, 0, '0', uid, accepted FROM ".TABLE_PREFIX."wiki_entries");
 				}
 		    
 				// Log admin action                   
 				log_admin_action("Wiki-Daten übertragen");
         
-				flash_message("Alle Kategorien und die entsprechenden Einträge wurden erfolgreich übertragen. Du kannst nun das Wiki-Plugin entfernen.", 'success');
+				flash_message("All categories and their corresponding entries have been successfully transferred. You can now remove the wiki plugin..", 'success');
 				admin_redirect("index.php?module=rpgstuff-lexicon_transfer");
 			}
 			
@@ -305,15 +305,15 @@ function lexicon_admin_manage() {
             if ($lexicon_categories == 0) {
 
 				$form_container->output_row(
-					"Datein importieren von Ales Wiki Plugin in das Lexikon",
-					"Mit einem einfachen Klick können alle Kategorien und die entsprechenden Einträge vom Wiki-Plugin von Ales in das Lexikon übertragen werden."
+					"Importing files from the Ales Wiki plugin into the encyclopedia",
+					"With a simple click, all categories and their corresponding entries can be transferred from Ales' Wiki plugin to the encyclopedia.."
 				);
 
                 $form_container->end();
-                $buttons[] = $form->generate_submit_button("Daten übertragen");
+                $buttons[] = $form->generate_submit_button("data transfer");
                 $form->output_submit_wrapper($buttons);
             } else {
-                $form_container->output_cell("Es bestehen schon Kategorien und Einträge, weswegen keine Übertragung möglich ist.", array('style' => 'text-align: center;'));
+                $form_container->output_cell("Categories and entries already exist, which is why a transfer is not possible..", array('style' => 'text-align: center;'));
                 $form_container->construct_row();
 
                 $form_container->end();
@@ -326,7 +326,7 @@ function lexicon_admin_manage() {
 	}
 }
 
-// Stylesheet zum Master Style hinzufügen
+// Add stylesheet to master style
 function lexicon_admin_update_stylesheet(&$table) {
 
     global $db, $mybb, $lang;
@@ -335,7 +335,7 @@ function lexicon_admin_update_stylesheet(&$table) {
 
     require_once MYBB_ADMIN_DIR."inc/functions_themes.php";
 
-    // HINZUFÜGEN
+    // ADD
     if ($mybb->input['action'] == 'add_master' AND $mybb->get_input('plugin') == "lexicon") {
 
         $css = lexicon_stylesheet();
@@ -352,10 +352,10 @@ function lexicon_admin_update_stylesheet(&$table) {
         admin_redirect("index.php?module=rpgstuff-stylesheet_updates");
     }
 
-    // Zelle mit dem Namen des Themes
-    $table->construct_cell("<b>".htmlspecialchars_uni("Boardinternes Lexikon")."</b>", array('width' => '70%'));
+    // Cell containing the theme name
+    $table->construct_cell("<b>".htmlspecialchars_uni("Board-internal glossary")."</b>", array('width' => '70%'));
 
-    // Ob im Master Style vorhanden
+    // Whether it's present in the Master Style
     $master_check = $db->fetch_field($db->query("SELECT tid FROM ".TABLE_PREFIX."themestylesheets 
     WHERE name = 'lexicon.css' 
     AND tid = 1
@@ -386,7 +386,7 @@ function lexicon_admin_update_plugin(&$table) {
     // UPDATE
     if ($mybb->input['action'] == 'add_update' AND $mybb->get_input('plugin') == "lexicon") {
 
-        // Einstellungen überprüfen => Type = update
+        // Check settings => Type = update
         lexicon_settings('update');
         rebuild_settings();
 
@@ -399,12 +399,12 @@ function lexicon_admin_update_plugin(&$table) {
         $update_string = $update_data['update_string'];
         if (!empty($update_string)) {
 
-            // Ob im Master Style die Überprüfung vorhanden ist
+            // Whether the check is present in the master style
             $masterstylesheet = $db->fetch_field($db->query("SELECT stylesheet FROM ".TABLE_PREFIX."themestylesheets WHERE tid = 1 AND name = 'lexicon.css'"), "stylesheet");
             $masterstylesheet = (string)($masterstylesheet ?? '');
             $update_string = (string)($update_string ?? '');
             $pos = strpos($masterstylesheet, $update_string);
-            if ($pos === false) { // nicht vorhanden 
+            if ($pos === false) { // unavailable 
             
                 $theme_query = $db->simple_select('themes', 'tid, name');
                 while ($theme = $db->fetch_array($theme_query)) {
@@ -436,10 +436,10 @@ function lexicon_admin_update_plugin(&$table) {
             } 
         }
 
-        // Datenbanktabellen & Felder
+        // Database tables and fields
         lexicon_database();
 
-        // Collation prüfen und korrigieren
+        // Check and correct collation
         $charset = 'utf8mb4';
         $collation = 'utf8mb4_unicode_ci';
 
@@ -475,10 +475,10 @@ function lexicon_admin_update_plugin(&$table) {
         admin_redirect("index.php?module=rpgstuff-plugin_updates");
     }
 
-    // Zelle mit dem Namen des Themes
+    // Cell containing the theme name
     $table->construct_cell("<b>".htmlspecialchars_uni("Boardinternes Lexikon")."</b>", array('width' => '70%'));
 
-    // Überprüfen, ob Update erledigt
+    // Check if the update is complete
     $update_check = lexicon_is_updated();
 
     if (!empty($update_check)) {
@@ -490,28 +490,28 @@ function lexicon_admin_update_plugin(&$table) {
     $table->construct_row();
 }
 
-// TEAMHINWEIS
+// TEAM NOTE
 function lexicon_global() {
 
     global $db, $cache, $mybb, $templates, $lang, $lexikon_newentry, $menu_lexicon, $newentry_notice;
 	
-	// SPRACHDATEI
+	// LANGUAGE FILE
 	$lang->load('lexicon');
 
-	// EINSTELLUNGEN
+	// SETTINGS
 	$user_accepted_setting = $mybb->settings['lexicon_user_accepted'];
 
 	// MENU LINK
 	eval("\$menu_lexicon = \"".$templates->get("lexicon_header_link")."\";");
 
-	// TEAMHINWEIS => User einträge müssen überprüft werden
+	// TEAM NOTE => User entries must be reviewed
 	if ($user_accepted_setting == 1) {
 		$countentries = $db->num_rows($db->query("SELECT eid FROM ".TABLE_PREFIX."lexicon_entries WHERE accepted = '0'"));
 		if ($mybb->usergroup['canmodcp'] == "1" && $countentries > 0) {
 			if ($countentries == "1") {   
-				$newentry_notice = $lang->sprintf($lang->lexicon_header_banner, 'liegt', 'ein', 'neuer', 'Eintrag');
+				$newentry_notice = $lang->sprintf($lang->lexicon_header_banner, 'liegt', 'a', 'newer', 'entry');
 			} elseif ($countentries > "1") {
-				$newentry_notice = $lang->sprintf($lang->lexicon_header_banner, 'liegen', $countentries, 'neue', 'Einträge');
+				$newentry_notice = $lang->sprintf($lang->lexicon_header_banner, 'liegen', $countentries, 'new', 'entry');
 			}
 			eval("\$lexikon_newentry = \"".$templates->get("lexicon_header_banner")."\";");
 		} else {
@@ -527,10 +527,10 @@ function lexicon_modcp_nav() {
 
     global $db, $mybb, $templates, $theme, $header, $headerinclude, $footer, $lang, $modcp_nav, $nav_lexicon;
 
-	// SPRACHDATEI
+	// LANGUAGE FILE
 	$lang->load('lexicon');
 
-	// EINSTELLUNGEN ZIEHEN
+	// PULL SETTINGS
 	$user_accepted_setting = $mybb->settings['lexicon_user_accepted'];
     
 	if ($user_accepted_setting == 1) {
@@ -540,22 +540,22 @@ function lexicon_modcp_nav() {
 	}
 }
 
-// MOD-CP - SEITE
+// MOD-CP - PAGE
 function lexicon_modcp() {
    
     global $mybb, $templates, $lang, $theme, $header, $headerinclude, $footer, $db, $page, $modcp_nav, $text_options, $modcp_control_bit, $codebuttons;
 
-    // DAMIT DIE PN SACHE FUNKTIONIERT
+    // SO THAT THE PM THING WORKS
     require_once MYBB_ROOT."inc/datahandlers/pm.php";
     $pmhandler = new PMDataHandler();
 
-	// EINSTELLUNGEN ZIEHEN
+	// PULL SETTINGS
 	$alertsystem = $mybb->settings['lexicon_user_alert'];
 	$user_accepted_setting = $mybb->settings['lexicon_user_accepted'];
 	$lexicon_sort_entry_setting = $mybb->settings['lexicon_sort_entry'];
 	$lexicon_sub_setting = $mybb->settings['lexicon_sub'];
 
-	// SPRACHDATEI
+	// LANGUAGE FILE
 	$lang->load('lexicon');
 
 	// PARSER - HTML und CO erlauben
@@ -571,7 +571,7 @@ function lexicon_modcp() {
 		"allow_videocode" => 0
 	);
 
-	// Freischalten/Ablehnen
+	// Activate/Reject
     if($mybb->get_input('action') == 'lexicon') {
 
 		if ($user_accepted_setting != 1) {
@@ -619,13 +619,13 @@ function lexicon_modcp() {
 				$entrytext = $parser->parse_message($modcp['entrytext'], $text_options);
 			}
    
-            // User der das eingesendet hat
+            // User who submitted this
             $modcp['uid'] = htmlspecialchars_uni($modcp['uid']);
             $user = get_user($modcp['uid']);
             $user['username'] = htmlspecialchars_uni($user['username']);
             $createdby = build_profile_link($user['username'], $modcp['uid']);
 
-			// Unterbeitrag
+			// Sub-article
 			if ($mybb->settings['lexicon_sub'] == 1 AND $modcp['parentlist'] != 0) {
 				$parentname = $db->fetch_field($db->simple_select("lexicon_entries", "linktitle", "eid = '".$modcp['parentlist']."'"), "linktitle");
 				$path = $cat."&nbsp;»&nbsp;".$parentname."&nbsp;»&nbsp;<b>".$linktitle."</b>";
@@ -638,7 +638,7 @@ function lexicon_modcp() {
 
         $team_uid = $mybb->user['uid'];
 
-		//Der Eintrag wurde vom Team abgelehnt
+		//The entry was rejected by the team.
         if($delete = $mybb->get_input('delete')){
 
 			$titel = $db->fetch_field($db->simple_select("lexicon_entries", "linktitle", "eid = '".$delete."'"), "linktitle");
@@ -650,7 +650,7 @@ function lexicon_modcp() {
 			if (!empty($externallink)) {
 				$pm_message = $lang->sprintf($lang->lexicon_pm_message_delete_link, $sendbyName, $titel, $externallink);
 			}
-			// eintrag
+			// entry
 			else {
 				$pm_message = $lang->sprintf($lang->lexicon_pm_message_delete, $sendbyName, $titel);
 			}
@@ -699,7 +699,7 @@ function lexicon_modcp() {
 			redirect("modcp.php?action=lexicon", $lang->lexicon_redirect_modcp_delete);
 		}
         
-		//Der Eintag wurde vom Team angenommen        
+		//The entry was accepted by the team.        
 		if($accept = $mybb->get_input('accept')){
 
 			$titel = $db->fetch_field($db->simple_select("lexicon_entries", "linktitle", "eid = '".$accept."'"), "linktitle");
@@ -712,7 +712,7 @@ function lexicon_modcp() {
 			if (!empty($externallink)) {
 				$pm_message = $lang->sprintf($lang->lexicon_pm_message_accept_link, $sendbyName, $titel, $externallink);
 			}
-			// eintrag
+			// entry
 			else {
 				$pm_message = $lang->sprintf($lang->lexicon_pm_message_accept, $sendbyName, $titel, $link);
 			}
@@ -765,13 +765,13 @@ function lexicon_modcp() {
 			redirect("modcp.php?action=lexicon", $lang->lexicon_redirect_modcp_accept);
 		}
  
-        // TEMPLATE FÜR DIE SEITE
+        // TEMPLATE FOR THE PAGE
         eval("\$page = \"".$templates->get("lexicon_modcp")."\";");
         output_page($page);
         die();
     }
 
-	// Bearbeiten
+	// Edit
 	if($mybb->get_input('action') == "lexicon_entryedit") {
 
 		if ($user_accepted_setting != 1) {
@@ -785,7 +785,7 @@ function lexicon_modcp() {
         add_breadcrumb($lang->lexicon_modcp, "modcp.php?action=lexicon");
 		add_breadcrumb($lang->lexicon_nav_edit_entry, "modcp.php?action=lexicon_entryedit&eid=".$eid);
 
-		// Eintrag auslesen
+		// Read entry
 		$entry_query = $db->query("SELECT * FROM ".TABLE_PREFIX."lexicon_entries
 		WHERE eid = '".$eid."'
 		");
@@ -810,12 +810,12 @@ function lexicon_modcp() {
 			$sort = $edit['sort'];
 			$externallink = $edit['externallink'];
  
-			// KATEGORIEN DROPBOX GENERIEREN
+			// GENERATE DROPBOX CATEGORIES
 			$categories_query = $db->query("SELECT * FROM ".TABLE_PREFIX."lexicon_categories ORDER by categoryname ASC");
 			$cat_select = "";
 			while($category = $db->fetch_array($categories_query)) {
     
-				// die bisherige Kategorie als ausgewählt anzeigen lassen
+				// Show the current category as selected
 				if($category['cid'] == $cid) {
 					$checked_cat = "selected";
 				} else {
@@ -836,7 +836,7 @@ function lexicon_modcp() {
 				$entries_select = "";    
 				while($entry = $db->fetch_array($entries_query)) {
 
-					// die bisherige Kategorie als ausgewählt anzeigen lassen
+					// Show the current category as selected
 					if($entry['eid'] == $edit['parentlist']) {
 						$checked_sub = "selected";
 					} else {
@@ -870,7 +870,7 @@ function lexicon_modcp() {
 		die();
 	}
 
-	// Bearbeiten - speichern
+	// Edit - Save
 	if($mybb->get_input('action') == "do_lexicon_entryedit") {
 
 		$eid = $mybb->input['eid'];
@@ -905,35 +905,35 @@ function lexicon_online_activity($user_activity) {
         $filename = my_substr($split_loc[0], -my_strpos(strrev($split_loc[0]), "/"));
     }
 
-	// Unterseite
+	// Bottom
     if (!empty($split_loc[1])) {
 
-        // Name der Unterseite
+        // Subpage name
         $split_value = explode("=", $split_loc[1]);
         // Parameter
         $value = $split_value[1];
 
-        // Name des Actions
+        // Name of the Action
         $split_parameter = explode("?", $split_value[0]);
         // Action
         $parameter = $split_parameter[1];
 
-		// action Seiten 
+		// action pages
 		if ($parameter == 'action') {
 
-			// INHALTSVERZEICHNIS
+			// TABLE OF CONTENTS
 			// lexicon.php?action=contents
 			if($value == "contents"){
 				$side_name = "contents";
 			}
 			
-			// KATEGORIE HINZUFÜGEN
+			// ADD CATEGORY
 			// lexicon.php?action=add_category
 			if($value == "add_category"){
 				$side_name = "add_category";
 			}
 			
-			// EINTRAG HINZUFÜGEN
+			// ADD ENTRY
 			// lexicon.php?action=add_entry
 			if($value == "add_entry"){
 				$side_name = "add_entry";
@@ -941,7 +941,7 @@ function lexicon_online_activity($user_activity) {
 
 		}
 
-		// edit Seiten 
+		// edit pages 
 		if ($parameter == 'edit') {
 
 			$value_split = explode("&", $value);
@@ -949,19 +949,19 @@ function lexicon_online_activity($user_activity) {
 			//IDs
 			$value_id = $split_value[2];
 			
-			// KATEGORIE BEARBEITEN
+			// EDIT CATEGORY
 			// lexicon.php?edit=category&cid=XXX
 			if($edit_value == "category"){
 				$side_name = "edit_category=".$value_id;
 			}
 			
-			// EINTRAG BEARBEITEN
+			// EDIT ENTRY
 			// lexicon.php?edit=entry&eid=XXX
 			if($edit_value == "entry"){
 				$side_name = "edit_entry=".$value_id;
 			}
 			
-			// EXTERNEN LINK BEARBEITEN
+			// EDIT EXTERNAL LINK
 			// lexicon.php?edit=externallink&eid=XXX
 			if($edit_value == "externallink"){
 				$side_name = "edit_externallink=".$value_id;
@@ -985,7 +985,7 @@ function lexicon_online_activity($user_activity) {
 			$side_name = "search=".$kayword;
 		}
 	} 
-	// HAUPTSEITE
+	// MAIN PAGE
     else {
         $side_name = "main";
     }
@@ -1004,59 +1004,59 @@ function lexicon_online_location($plugin_array) {
 
     $lang->load("lexicon");
 
-	// Seitennamen
+	// Page names
 	$split_name = explode("=", $plugin_array['user_activity']['activity']);
 	$sidename = $split_name[0];
 
-	// HAUPTSEITE
+	// MAIN PAGE
 	if($sidename == "lexicon_main") {
         $plugin_array['location_name'] = $lang->lexicon_online_location_main;
     }
 
-	// INHALTSVERZEICHNIS
+	// TABLE OF CONTENTS
 	if($sidename == "lexicon_contents") {
 		$plugin_array['location_name'] = $lang->lexicon_online_location_contents;
 	}
 
-	// KATEGORIE HINZUFÜGEN
+	// ADD CATEGORY
 	if($sidename == "lexicon_add_category") {
 		$plugin_array['location_name'] = $lang->lexicon_online_location_add_category;
 	}
 
-	// EINTRAG HINZUFÜGEN
+	// ADD ENTRY
 	if($sidename == "lexicon_add_entry") {
 		$plugin_array['location_name'] = $lang->lexicon_online_location_add_entry;
 	}
 
-	// KATEGORIE BEARBEITEN
+	// EDIT CATEGORY
 	if($sidename == "lexicon_edit_category") {
 		$cid = $split_name[1];
 		$categoryname = $db->fetch_field($db->simple_select("lexicon_categories", "categoryname", "cid = '".$cid."'"), "categoryname");
 		$plugin_array['location_name'] = $lang->sprintf($lang->lexicon_online_location_edit_category, $categoryname);
 	}
 
-	// EINTRAG BEARBEITEN
+	// EDIT ENTRY
 	if($sidename == "lexicon_edit_entry") {
 		$eid = $split_name[1];
 		$linktitle = $db->fetch_field($db->simple_select("lexicon_entries", "linktitle", "eid = '".$eid."'"), "linktitle");
 		$plugin_array['location_name'] = $lang->sprintf($lang->lexicon_online_location_edit_entry, $linktitle);
 	}
 
-	// EXTERNEN LINK BEARBEITEN
+	// EDIT EXTERNAL LINK
 	if($sidename == "lexicon_edit_externallink") {
 		$eid = $split_name[1];
 		$linktitle = $db->fetch_field($db->simple_select("lexicon_entries", "linktitle", "eid = '".$eid."'"), "linktitle");
 		$plugin_array['location_name'] = $lang->sprintf($lang->lexicon_online_location_edit_externallink, $linktitle);
 	}
 
-	// DIE EINTRÄGE
+	// THE ENTRIES
 	if($sidename == "lexicon_page") {
 		$link = $split_name[1];
 		$linktitle = $db->fetch_field($db->simple_select("lexicon_entries", "linktitle", "link = '".$link."'"), "linktitle");
 		$plugin_array['location_name'] = $lang->sprintf($lang->lexicon_online_location_page, $link, $linktitle);
 	}
 
-	// DIE EINTRÄGE
+	// THE ENTRIES
 	if($sidename == "lexicon_search") {
 		$keyword = $split_name[1];
 		$plugin_array['location_name'] = $lang->sprintf($lang->lexicon_online_location_search, $keyword);
@@ -1071,9 +1071,9 @@ function lexicon_myalert_alerts() {
 	global $mybb, $lang;
 	$lang->load('lexicon');
 
-    // ABLEHNEN
+    // REFUSE
     /**
-	 * Alert formatter for my custom alert type.
+	 *Alert formatter for my custom alert type.
 	 */
 	class MybbStuff_MyAlerts_Formatter_lexiconDeleteFormatter extends MybbStuff_MyAlerts_Formatter_AbstractFormatter
 	{
@@ -1100,8 +1100,8 @@ function lexicon_myalert_alerts() {
 	    }
 
 	    /**
-	     * Init function called before running formatAlert(). Used to load language files and initialize other required
-	     * resources.
+	     * Init function called before running formatAlert(). Used to load language files and initialize other required 
+         * resources.
 	     *
 	     * @return void
 	     */
@@ -1138,7 +1138,7 @@ function lexicon_myalert_alerts() {
 		);
     }
 
-	// ANNEHMEN
+	// ASSUME
 	/**
 	* Alert formatter for my custom alert type.
 	*/
@@ -1209,13 +1209,13 @@ function lexicon_myalert_alerts() {
 
 }
 
-// DATENBANKTABELLEN
+// DATABASE TABLES
 function lexicon_database() {
 
     global $db;
     
-    // DATENBANKEN ERSTELLEN
-    // Kategorien
+    // CREATING DATABASES
+    // Categories
     if (!$db->table_exists("lexicon_categories")) {
         $db->query("CREATE TABLE ".TABLE_PREFIX."lexicon_categories(
 			`cid` int(10) NOT NULL AUTO_INCREMENT,
@@ -1227,7 +1227,7 @@ function lexicon_database() {
 			ENGINE=InnoDB ".$db->build_create_table_collation().";
 		");
     }
-    // Einträge
+    // Entries
     if (!$db->table_exists("lexicon_entries")) {
         $db->query("CREATE TABLE ".TABLE_PREFIX."lexicon_entries(
 			`eid` int(10) NOT NULL auto_increment, 
@@ -1249,78 +1249,78 @@ function lexicon_database() {
     }
 }
 
-// EINSTELLUNGEN
+// SETTINGS
 function lexicon_settings($type = 'install') {
 
     global $db; 
 
     $setting_array = array(
 		'lexicon_groups_cat' => array(
-			'title' => 'Gruppen für Kategorien',
-			'description' => 'Welche Gruppen haben die Möglichkeit neue Kategorien für das Lexikon hinzufügen?',
+			'title' => 'Groups for categories',
+			'description' => 'Which groups have the ability to add new categories to the lexicon??',
 			'optionscode' => 'groupselect',
 			'value' => 4, // Default
 			'disporder' => 1
 		),
 		'lexicon_groups_entry' => array(
-			'title' => 'Gruppen für Einträge',
-			'description' => 'Welche Gruppen haben die Möglichkeit neue Einträge für das Lexikon hinzufügen?',
+			'title' => 'Groups for entries',
+			'description' => 'Which groups have the ability to add new entries to the encyclopedia?',
 			'optionscode' => 'groupselect',
 			'value' => 4, // Default
 			'disporder' => 2
 		),
 		'lexicon_user_accepted' => array(
-			'title' => 'Überprüfung von Einträgen',
-			'description' => 'Sollen eingereichte Einträge von Usern vorher überprüft werden und manuell vom Team freigeschaltet werden?',
+			'title' => 'Review of entries',
+			'description' => 'Should user-submitted posts be reviewed beforehand and manually approved by the team??',
 			'optionscode' => 'yesno',
 			'value' => 0, // Default
 			'disporder' => 3
 		),
 		'lexicon_user_edit' => array(
-			'title' => 'Bearbeitung von Einträgen',
-			'description' => 'Dürfen User ihre eingereichten Einträge selbstständig bearbeiten? Eine weitere Überprüfung vom oder Benachrichtigung ans Team wird es nicht geben.',
+			'title' => 'Editing entries',
+			'description' => 'Are users allowed to edit their submitted entries themselves? There will be no further review by the team or notification.',
 			'optionscode' => 'yesno',
 			'value' => 0, // Default
 			'disporder' => 4
 		),
 		'lexicon_user_delete' => array(
-			'title' => 'Löschen von Einträgen',
-			'description' => 'Dürfen User ihre eingereichten Einträge selbstständig löschen?',
+			'title' => 'Deleting entries',
+			'description' => 'Are users allowed to delete their submitted entries themselves??',
 			'optionscode' => 'yesno',
 			'value' => 0, // Default
 			'disporder' => 5
 		),
 		'lexicon_user_alert' => array(
-			'title' => 'Benachrichtigungsystem',
-			'description' => 'Wie sollen User darüber in Kenntnis gesetzt werden, dass ihr eingereichter Lexikoneintrag angenommen bzw. abgelehnt wurde?',
+			'title' => 'Notification system',
+			'description' => 'How should users be notified that their submitted dictionary entry has been accepted or rejected??',
 			'optionscode' => 'select\n0=MyAlerts\n1=Private Nachricht',
 			'value' => 0, // Default
 			'disporder' => 6
 		),
 		'lexicon_sort_cat' => array(
-			'title' => 'Sortierung der Kategorien',
-			'description' => 'Sollen die Kategorien im Menü alphabetisch nach ihren Namen sortiert werden, oder nach einer manuellen Sortierung?'			,
+			'title' => 'Sorting of categories',
+			'description' => 'Should the categories in the menu be sorted alphabetically by their names, or according to a manual sorting scheme??'			,
 			'optionscode' => 'select\n0=Kategorienamen\n1=manuelle Sortierung',
 			'value' => 0, // Default
 			'disporder' => 7
 		),
 		'lexicon_sort_entry' => array(
-			'title' => 'Sortierung der Einträge',
-			'description' => 'Sollen die Einträge im Menü alphabetisch nach ihren Linktitel sortiert werden oder nach einer manuellen Sortierung?',
+			'title' => 'Sorting of entries',
+			'description' => 'Should the menu entries be sorted alphabetically by their link title or according to a manual sort??',
 			'optionscode' => 'select\n0=Linktitel\n1=manuelle Sortierung',
 			'value' => 0, // Default
 			'disporder' => 8
 		),
 		'lexicon_contents' => array(
-			'title' => 'Inhaltsverzeichnis',
-			'description' => 'Soll ein großes Inhaltsverzeichnis erstellt werden? Die Beiträge werden alphabetisch kategorisiert.',
+			'title' => 'Table of contents',
+			'description' => 'Should a comprehensive table of contents be created? The articles will be categorized alphabetically..',
 			'optionscode' => 'yesno',
 			'value' => 1, // Default
 			'disporder' => 9
 		),
 		'lexicon_sub' => array(
-			'title' => 'Untereinträge',
-			'description' => 'Können Einträge auch noch Untereinträge bekommen?',
+			'title' => 'Subentries',
+			'description' => 'Can entries also have sub-entries??',
 			'optionscode' => 'yesno',
 			'value' => 1, // Default
 			'disporder' => 10
@@ -1342,12 +1342,12 @@ function lexicon_settings($type = 'install') {
         // Einzeln durchgehen 
         foreach ($setting_array as $name => $setting) {
             $setting['name'] = $name;
-            $check = $db->write_query("SELECT name FROM ".TABLE_PREFIX."settings WHERE name = '".$name."'"); // Überprüfen, ob sie vorhanden ist
+            $check = $db->write_query("SELECT name FROM ".TABLE_PREFIX."settings WHERE name = '".$name."'"); // Check if it exists
             $check = $db->num_rows($check);
             $setting['gid'] = $gid;
-            if ($check == 0) { // nicht vorhanden, hinzufügen
+            if ($check == 0) { // not present, add
               $db->insert_query('settings', $setting);
-            } else { // vorhanden, auf Änderungen überprüfen
+            } else { // available, check for changes
                 
                 $current_setting = $db->fetch_array($db->write_query("SELECT title, description, optionscode, disporder FROM ".TABLE_PREFIX."settings 
                 WHERE name = '".$db->escape_string($name)."'
@@ -1579,7 +1579,7 @@ function lexicon_templates($mode = '') {
 		</td>				
 		<td class="trow1">
 			<select name="parentlist" required>
-				<option value="0">Kein Untereintrag</option>
+				<option value="0">No sub-entry</option>
 				{$entries_select}
 			</select> 
 		</td>
