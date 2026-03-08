@@ -24,7 +24,7 @@ if(class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
 // The information displayed in the plugin manager
 function lexicon_info(){
 	return array(
-		"name"		=> "Board-internal glossary",
+		"name"		=> "Lexicon",
 		"description"	=> "Add a custom lexicon to the forum. This can be accessed on the page /lexicon.php.",
 		"website"	=> "https://github.com/little-evil-genius/Lexikon",
 		"author"	=> "little.evil.genius",
