@@ -24,7 +24,7 @@ if(class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
 // The information displayed in the plugin manager
 function lexicon_info(){
 	return array(
-		"name"		=> "Lexicon",
+		"name"		=> "Board-internal glossary",
 		"description"	=> "Add a custom lexicon to the forum. This can be accessed on the page /lexicon.php.",
 		"website"	=> "https://github.com/little-evil-genius/Lexikon",
 		"author"	=> "little.evil.genius",
@@ -1300,14 +1300,14 @@ function lexicon_settings($type = 'install') {
 		'lexicon_sort_cat' => array(
 			'title' => 'Sorting of categories',
 			'description' => 'Should the categories in the menu be sorted alphabetically by their names, or according to a manual sorting scheme??'			,
-			'optionscode' => 'select\n0=Kategorienamen\n1=manuelle Sortierung',
+			'optionscode' => 'select\n0=Category names\n1=manual sorting',
 			'value' => 0, // Default
 			'disporder' => 7
 		),
 		'lexicon_sort_entry' => array(
 			'title' => 'Sorting of entries',
 			'description' => 'Should the menu entries be sorted alphabetically by their link title or according to a manual sort??',
-			'optionscode' => 'select\n0=Linktitel\n1=manuelle Sortierung',
+			'optionscode' => 'select\n0=Link title\n1=manual sorting',
 			'value' => 0, // Default
 			'disporder' => 8
 		),
